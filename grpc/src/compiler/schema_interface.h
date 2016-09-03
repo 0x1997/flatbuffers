@@ -38,16 +38,16 @@
 #include <memory>
 #include <vector>
 
- #ifndef GRPC_CUSTOM_STRING
- #include <string>
- #define GRPC_CUSTOM_STRING std::string
- #endif
+#ifndef GRPC_CUSTOM_STRING
+#include <string>
+#define GRPC_CUSTOM_STRING std::string
+#endif
 
 namespace grpc {
 
   typedef GRPC_CUSTOM_STRING string;
 
-}  // namespace grpc
+} // namespace grpc
 
 namespace grpc_generator {
 
@@ -61,6 +61,9 @@ namespace grpc_generator {
     virtual grpc::string output_type_name() const = 0;
     virtual grpc::string input_name() const = 0;
     virtual grpc::string output_name() const = 0;
+
+    virtual grpc::string request_name() const = 0;
+    virtual grpc::string response_name() const = 0;
 
     virtual bool NoStreaming() const = 0;
     virtual bool ClientOnlyStreaming() const = 0;

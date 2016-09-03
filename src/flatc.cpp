@@ -81,7 +81,7 @@ const Generator generators[] = {
     "Generate C# classes for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GeneratePython,   "-p", "--python", "Python",
-    nullptr,
+    flatbuffers::GeneratePythonGRPC,
     flatbuffers::IDLOptions::kMAX,
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
@@ -113,6 +113,7 @@ static void Error(const std::string &err, bool usage, bool show_exe_name) {
                : "  ",
              generators[i].generator_help);
     printf(
+      "  --grpc             Generate GRPC interfaces for the specified language.\n"
       "  -o PATH            Prefix PATH to all generated files.\n"
       "  -I PATH            Search for includes in the specified path.\n"
       "  -M                 Print make rules for generated files.\n"
@@ -181,6 +182,7 @@ int main(int argc, const char *argv[]) {
   const size_t num_generators = sizeof(generators) / sizeof(generators[0]);
   bool generator_enabled[num_generators] = { false };
   bool any_generator = false;
+  bool grpc_enabled = false;
   bool print_make_rules = false;
   bool raw_binary = false;
   bool schema_binary = false;
@@ -263,8 +265,8 @@ int main(int argc, const char *argv[]) {
       } else {
         for (size_t i = 0; i < num_generators; ++i) {
           if (arg == generators[i].generator_opt_long ||
-              (generators[i].generator_opt_short &&
-               arg == generators[i].generator_opt_short)) {
+             (generators[i].generator_opt_short &&
+              arg == generators[i].generator_opt_short)) {
             generator_enabled[i] = true;
             any_generator = true;
             goto found;
@@ -357,7 +359,7 @@ int main(int argc, const char *argv[]) {
       }
 
       std::string filebase = flatbuffers::StripPath(
-                               flatbuffers::StripExtension(*file_it));
+                              flatbuffers::StripExtension(*file_it));
 
       for (size_t i = 0; i < num_generators; ++i) {
         g_parser->opts.lang = generators[i].lang;
@@ -369,6 +371,14 @@ int main(int argc, const char *argv[]) {
                     generators[i].lang_name +
                     " for " +
                     filebase);
+            }
+            if(grpc_enabled) {
+              if(generators[i].generate_grpc == nullptr) {
+                Error(std::string("GRPC interface generation not implemented for this language"));
+              } else if(!generators[i].generate_grpc(*g_parser, output_path, filebase)) {
+                Error(std::string("Unable to generate GRPC interface for ") +
+                      generators[i].lang_name);
+              }
             }
           } else {
             std::string make_rule = generators[i].make_rule(

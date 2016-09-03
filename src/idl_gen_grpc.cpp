@@ -23,6 +23,7 @@
 
 #include "src/compiler/cpp_generator.h"
 #include "src/compiler/go_generator.h"
+#include "src/compiler/python_generator.h"
 
 namespace flatbuffers {
 
@@ -42,6 +43,22 @@ class FlatBufMethod : public grpc_generator::Method {
   }
 
   std::string name() const { return method_->name; }
+
+  std::string input_type_class(const StructDef &sd) const {
+    return sd.name;
+  }
+
+  std::string output_type_class(const StructDef &sd) const {
+    return sd.name;
+  }
+
+  std::string request_name() const {
+    return input_type_class(*method_->request);
+  }
+
+  std::string response_name() const {
+    return output_type_class(*method_->response);
+  }
 
   std::string GRPCType(const StructDef &sd) const {
     return "flatbuffers::BufferRef<" + sd.name + ">";
@@ -265,6 +282,36 @@ bool GenerateCppGRPC(const Parser &parser,
                                header_code, false) &&
          flatbuffers::SaveFile((file_name + ".grpc.fb.cc").c_str(),
                                source_code, false);
+}
+
+bool GenerateGRPCPython(const Parser &parser,
+                        const std::string &/*path*/,
+                        const std::string &file_name) {
+  int nservices = 0;
+  for (auto it = parser.services_.vec.begin();
+       it != parser.services_.vec.end(); ++it) {
+    if (!(*it)->generated) nservices++;
+  }
+  if (!nservices) return true;
+  
+  grpc_python_generator::GeneratorConfiguration config;
+  config.grpc_package_root = "grpc";
+  config.beta_package_root = "grpc.beta";
+
+  FlatBufFile fbfile(parser, file_name);
+
+  std::string code = grpc_python_generator::GetServices(&fbfile, config);
+  
+  std::string namespace_dir;
+  auto &namespaces = parser.namespaces_.back()->components;
+  for (auto it = namespaces.begin(); it != namespaces.end(); ++it) {
+    if (it != namespaces.begin()) namespace_dir += kPathSeparator;
+    namespace_dir += *it;
+  }
+
+  std::string grpc_py_filename = namespace_dir + kPathSeparator + file_name + "_grpc_fb.py";
+  return flatbuffers::SaveFile(grpc_py_filename.c_str(), code, false);
+
 }
 
 }  // namespace flatbuffers

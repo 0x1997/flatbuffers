@@ -21,7 +21,7 @@ import ctypes
 from collections import defaultdict
 import timeit
 import unittest
-
+from concurrent import futures
 
 from flatbuffers import compat
 from flatbuffers.compat import range_func as compat_range
@@ -37,6 +37,7 @@ import MyGame.Example.Monster  # refers to generated code
 import MyGame.Example.Test  # refers to generated code
 import MyGame.Example.Stat  # refers to generated code
 import MyGame.Example.Vec3  # refers to generated code
+import MyGame.Example.monster_test_grpc_fb as monster_test_grpc_fb # refers to generated code
 
 
 def assertRaises(test_case, fn, exception_class):
@@ -1326,6 +1327,24 @@ def backward_compatible_run_tests(**kwargs):
 
     return True
 
+class MonsterStorage(monster_test_grpc_fb.MonsterStorageServicer):
+
+  def Store(self, request, context):
+    return monster_test_grpc_fb.Stat(id='Hello, %s!' % request.name)
+
+def run_server():
+  server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+  monster_test_grpc_fb.add_MonsterStorageServicer_to_server(MonsterStorage(), server)
+  server.add_insecure_port('[::]:50051')
+  server.start()
+
+def run_client(buf, offset):
+  monster = MyGame.Example.Monster.Monster.GetRootAsMonster(buf, offset)
+  channel = grpc.insecure_channel('localhost:50051')
+  stub = monster_test_grpc_fb.MonsterStorageStub(channel)
+  response = stub.Store(monster_test_grpc_fb.Monster(name=monster.Name()))
+  print("RPC received: " + response.message)
+
 def main():
     import os
     import sys
@@ -1366,6 +1385,18 @@ def main():
     if bench_build:
         buf, off = make_monster_from_generated_code()
         BenchmarkMakeMonsterFromGeneratedCode(bench_build, len(buf))
+
+    # run grpc tests
+    if sys.argv[1] == "--grpc":
+        builder = flatbuffers.Builder(0)
+        name = builder.CreateString('Fred')
+        MyGame.Example.Monster.MonsterAddName(builder, name)
+        mon = MyGame.Example.Monster.MonsterEnd(builder)
+        builder.Finish(mon)
+        run_server()
+        run_client(builder.Bytes, builder.Head())
+        if not grpc.StatusCode.OK:
+            print("RPC failed.")
 
 if __name__ == '__main__':
     main()
