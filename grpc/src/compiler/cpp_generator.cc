@@ -62,6 +62,11 @@ grpc::string FilenameIdentifier(const grpc::string &filename) {
   }
   return result;
 }
+
+grpc::string InputOutputName(const grpc::string &name) {
+    return "flatbuffers::BufferRef<" + name + ">";
+}
+
 }  // namespace
 
 template<class T, size_t N>
@@ -158,8 +163,8 @@ void PrintHeaderClientMethodInterfaces(
     grpc_generator::Printer *printer, const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars, bool is_public) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
 
   if (is_public) {
     if (method->NoStreaming()) {
@@ -309,8 +314,8 @@ void PrintHeaderClientMethod(grpc_generator::Printer *printer,
                              std::map<grpc::string, grpc::string> *vars,
                              bool is_public) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
   if (is_public) {
     if (method->NoStreaming()) {
       printer->Print(
@@ -455,8 +460,8 @@ void PrintHeaderClientMethodData(grpc_generator::Printer *printer, const grpc_ge
 void PrintHeaderServerMethodSync(grpc_generator::Printer *printer, const grpc_generator::Method *method,
                                  std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
   if (method->NoStreaming()) {
     printer->Print(*vars,
                    "virtual ::grpc::Status $Method$("
@@ -488,8 +493,8 @@ void PrintHeaderServerMethodAsync(
     const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
   printer->Print(*vars, "template <class BaseClass>\n");
   printer->Print(*vars,
                  "class WithAsyncMethod_$Method$ : public BaseClass {\n");
@@ -604,8 +609,8 @@ void PrintHeaderServerMethodGeneric(
     const grpc_generator::Method *method,
     std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
   printer->Print(*vars, "template <class BaseClass>\n");
   printer->Print(*vars,
                  "class WithGenericMethod_$Method$ : public BaseClass {\n");
@@ -885,8 +890,8 @@ void PrintSourceClientMethod(grpc_generator::Printer *printer,
                              const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
   if (method->NoStreaming()) {
     printer->Print(*vars,
                    "::grpc::Status $ns$$Service$::Stub::$Method$("
@@ -986,8 +991,8 @@ void PrintSourceServerMethod(grpc_generator::Printer *printer,
                              const grpc_generator::Method *method,
                              std::map<grpc::string, grpc::string> *vars) {
   (*vars)["Method"] = method->name();
-  (*vars)["Request"] = method->input_type_name();
-  (*vars)["Response"] = method->output_type_name();
+  (*vars)["Request"] = InputOutputName(method->input_name());
+  (*vars)["Response"] = InputOutputName(method->output_name());
   if (method->NoStreaming()) {
     printer->Print(*vars,
                    "::grpc::Status $ns$$Service$::Service::$Method$("
@@ -1102,8 +1107,8 @@ void PrintSourceService(grpc_generator::Printer *printer,
     auto method = service->method(i);
     (*vars)["Idx"] = as_string(i);
     (*vars)["Method"] = method->name();
-    (*vars)["Request"] = method->input_type_name();
-    (*vars)["Response"] = method->output_type_name();
+    (*vars)["Request"] = InputOutputName(method->input_name());
+    (*vars)["Response"] = InputOutputName(method->output_name());
     if (method->NoStreaming()) {
       printer->Print(
           *vars,

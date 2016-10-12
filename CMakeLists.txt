@@ -48,12 +48,15 @@ set(FlatBuffers_Compiler_SRCS
   src/idl_gen_grpc.cpp
   src/flatc.cpp
   grpc/src/compiler/schema_interface.h
+  grpc/src/compiler/generator_helpers.h
   grpc/src/compiler/cpp_generator.h
   grpc/src/compiler/cpp_generator.cc
   grpc/src/compiler/go_generator.h
   grpc/src/compiler/go_generator.cc
   grpc/src/compiler/python_generator.h
   grpc/src/compiler/python_generator.cc
+  grpc/src/compiler/php_generator.h
+  grpc/src/compiler/php_generator.cc
 )
 
 set(FlatHash_SRCS

@@ -20,6 +20,16 @@ class TestSimpleTableWithEnum extends Table
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
+    /**
+     * @param str $str
+     * @return TestSimpleTableWithEnum
+     */
+    public static function getRootAsTestSimpleTableWithEnumFromBytes(string $str)
+    {
+        $obj = new TestSimpleTableWithEnum();
+        return ($obj::getRootAsTestSimpleTableWithEnum(ByteBuffer::wrap($str)));
+    }
+
     public static function TestSimpleTableWithEnumIdentifier()
     {
         return "MONS";

@@ -933,6 +933,15 @@ class FlatbufferBuilder
     {
         return $this->bb;
     }
+    
+    /**
+     * Get the Byte representing the FlatBuffer.
+     * @return Byte FlatBuffer data.
+     */
+    public function data()
+    {
+        return $this->dataBuffer()->data();
+    }
 
     /// @cond FLATBUFFERS_INTERNAL
     /**

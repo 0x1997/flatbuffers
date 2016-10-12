@@ -57,13 +57,10 @@ namespace grpc_generator {
 
     virtual grpc::string name() const = 0;
 
-    virtual grpc::string input_type_name() const = 0;
-    virtual grpc::string output_type_name() const = 0;
+//     virtual grpc::string input_type_name() const = 0;
+//     virtual grpc::string output_type_name() const = 0;
     virtual grpc::string input_name() const = 0;
     virtual grpc::string output_name() const = 0;
-
-    virtual grpc::string request_name() const = 0;
-    virtual grpc::string response_name() const = 0;
 
     virtual bool NoStreaming() const = 0;
     virtual bool ClientOnlyStreaming() const = 0;

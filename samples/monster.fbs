@@ -29,4 +29,13 @@ table Weapon {
   damage:short;
 }
 
+table MonsterId {
+  name:string;
+}
+
+rpc_service MonsterStorage {
+  Store(Monster):MonsterId (streaming: "none");
+  Retrieve(MonsterId):Monster (idempotent);
+}
+
 root_type Monster;

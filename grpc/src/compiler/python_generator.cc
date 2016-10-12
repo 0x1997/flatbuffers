@@ -149,8 +149,8 @@ void PrintBetaServerFactory(const grpc::string &package_qualified_service_name,
           grpc::string(method.get()->ClientOnlyStreaming() ? "stream_" : "unary_") +
           grpc::string(method.get()->ServerOnlyStreaming() ? "stream_" : "unary_") +
           "inline";
-      grpc::string input_message_module_and_class = method.get()->request_name();
-      grpc::string output_message_module_and_class = method.get()->response_name();
+      grpc::string input_message_module_and_class = method.get()->input_name();
+      grpc::string output_message_module_and_class = method.get()->output_name();
       method_implementation_constructors.insert(
           std::make_pair(method.get()->name(), method_implementation_constructor));
       input_message_modules_and_classes.insert(
@@ -237,8 +237,8 @@ void PrintBetaStubFactory(const grpc::string &package_qualified_service_name,
       const grpc::string method_cardinality =
           grpc::string(method.get()->ClientOnlyStreaming() ? "STREAM" : "UNARY") + "_" +
           grpc::string(method.get()->ServerOnlyStreaming() ? "STREAM" : "UNARY");
-      grpc::string input_message_module_and_class = method.get()->request_name();
-      grpc::string output_message_module_and_class = method.get()->response_name();
+      grpc::string input_message_module_and_class = method.get()->input_name();
+      grpc::string output_message_module_and_class = method.get()->output_name();
       method_cardinalities.insert(
           std::make_pair(method.get()->name(), method_cardinality));
       input_message_modules_and_classes.insert(
@@ -326,8 +326,8 @@ void PrintStub(const grpc::string &package_qualified_service_name,
         auto multi_callable_constructor =
             grpc::string(method.get()->ClientOnlyStreaming() ? "stream" : "unary") +
             "_" + grpc::string(method.get()->ServerOnlyStreaming() ? "stream" : "unary");
-        grpc::string request_module_and_class = method.get()->request_name();
-        grpc::string response_module_and_class = method.get()->response_name();
+        grpc::string request_module_and_class = method.get()->input_name();
+        grpc::string response_module_and_class = method.get()->output_name();
         vars["Method"] = method.get()->name();
         vars["MultiCallableConstructor"] = multi_callable_constructor;
         out->Print(vars, "self.$Method$ = channel.$MultiCallableConstructor$(\n");
@@ -397,8 +397,8 @@ void PrintAddServicerToServer(
             "_" +
             grpc::string(method.get()->ServerOnlyStreaming() ? "stream" : "unary") +
             "_rpc_method_handler";
-        grpc::string request_module_and_class = method.get()->request_name();
-        grpc::string response_module_and_class = method.get()->response_name();
+        grpc::string request_module_and_class = method.get()->input_name();
+        grpc::string response_module_and_class = method.get()->output_name();
         vars["Method"] = method.get()->name();
         vars["MethodHandlerConstructor"] = method_handler_constructor;
         out->Print(vars, "'$Method$': grpc.$MethodHandlerConstructor$(\n");

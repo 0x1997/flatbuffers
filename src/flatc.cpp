@@ -86,7 +86,7 @@ const Generator generators[] = {
     "Generate Python files for tables/structs",
     flatbuffers::GeneralMakeRule },
   { flatbuffers::GeneratePhp, nullptr, "--php", "PHP",
-    nullptr,
+    flatbuffers::GeneratePhpGRPC,
     flatbuffers::IDLOptions::kMAX,
     "Generate PHP files for tables/structs",
     flatbuffers::GeneralMakeRule },
@@ -186,7 +186,6 @@ int main(int argc, const char *argv[]) {
   bool print_make_rules = false;
   bool raw_binary = false;
   bool schema_binary = false;
-  bool grpc_enabled = false;
   std::vector<std::string> filenames;
   std::vector<const char *> include_directories;
   std::vector<const char *> conform_include_directories;
@@ -373,9 +372,9 @@ int main(int argc, const char *argv[]) {
                     filebase);
             }
             if(grpc_enabled) {
-              if(generators[i].generate_grpc == nullptr) {
+              if(generators[i].generateGRPC == nullptr) {
                 Error(std::string("GRPC interface generation not implemented for this language"));
-              } else if(!generators[i].generate_grpc(*g_parser, output_path, filebase)) {
+              } else if(!generators[i].generateGRPC(*g_parser, output_path, filebase)) {
                 Error(std::string("Unable to generate GRPC interface for ") +
                       generators[i].lang_name);
               }

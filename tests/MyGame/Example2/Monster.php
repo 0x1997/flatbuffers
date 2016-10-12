@@ -20,6 +20,16 @@ class Monster extends Table
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
+    /**
+     * @param str $str
+     * @return Monster
+     */
+    public static function getRootAsMonsterFromBytes(string $str)
+    {
+        $obj = new Monster();
+        return ($obj::getRootAsMonster(ByteBuffer::wrap($str)));
+    }
+
     public static function MonsterIdentifier()
     {
         return "MONS";

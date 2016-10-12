@@ -20,6 +20,16 @@ class Stat extends Table
         return ($obj->init($bb->getInt($bb->getPosition()) + $bb->getPosition(), $bb));
     }
 
+    /**
+     * @param str $str
+     * @return Stat
+     */
+    public static function getRootAsStatFromBytes(string $str)
+    {
+        $obj = new Stat();
+        return ($obj::getRootAsStat(ByteBuffer::wrap($str)));
+    }
+
     public static function StatIdentifier()
     {
         return "MONS";

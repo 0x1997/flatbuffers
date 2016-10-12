@@ -150,6 +150,28 @@ namespace php {
       code += " + $bb->getPosition(), $bb));\n";
       code += Indent + "}\n\n";
     }
+    
+    // Initialize a new struct or table from existing data.
+    static void NewRootTypeFromBytes(const StructDef &struct_def,
+      std::string *code_ptr) {
+      std::string &code = *code_ptr;
+
+      code += Indent + "/**\n";
+      code += Indent + " * @param str $str\n";
+      code += Indent + " * @return " + struct_def.name + "\n";
+      code += Indent + " */\n";
+      code += Indent + "public static function getRootAs";
+      code += struct_def.name;
+      code += "FromBytes(string $str)\n";
+      code += Indent + "{\n";
+      
+      code += Indent + Indent + "$obj = new " + struct_def.name + "();\n";
+      code += Indent + Indent;
+      code += "return ($obj::getRootAs";
+      code += struct_def.name;
+      code += "(ByteBuffer::wrap($str)));\n";
+      code += Indent + "}\n\n";
+    }
 
     // Initialize an existing object with other data, to avoid an allocation.
     static void InitializeExisting(const StructDef &struct_def,
@@ -768,6 +790,7 @@ namespace php {
         // Generate a special accessor for the table that has been declared as
         // the root type.
         NewRootTypeFromBuffer(struct_def, code_ptr);
+        NewRootTypeFromBytes(struct_def, code_ptr);
       }
 
       std::string &code = *code_ptr;
