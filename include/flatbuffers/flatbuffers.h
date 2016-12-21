@@ -1486,7 +1486,6 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   mutable const uint8_t *upper_bound_;
 #endif
 };
-
 // Convenient way to bundle a buffer and its length, to pass it around
 // typed by its root.
 // A BufferRef does not own its buffer.
@@ -1495,6 +1494,12 @@ template<typename T> struct BufferRef : BufferRefBase {
   BufferRef() : buf(nullptr), len(0), must_free(false) {}
   BufferRef(uint8_t *_buf, uoffset_t _len)
     : buf(_buf), len(_len), must_free(false) {}
+
+  void assign(FlatBufferBuilder&& builder) {
+      len = builder.GetSize();
+      must_free = true;
+      buf = builder.ReleaseBufferPointer().release();
+  }
 
   ~BufferRef() { if (must_free) free(buf); }
 
