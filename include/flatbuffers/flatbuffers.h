@@ -133,11 +133,16 @@ typedef uintmax_t largest_scalar_t;
 // We support aligning the contents of buffers up to this size.
 #define FLATBUFFERS_MAX_ALIGNMENT 16
 
+typedef std::function<void(uint8_t*)> buf_deleter;
+
 #ifndef FLATBUFFERS_CPP98_STL
 // Pointer to relinquished memory.
-typedef std::unique_ptr<uint8_t, std::function<void(uint8_t * /* unused */)>>
+typedef std::unique_ptr<uint8_t, buf_deleter>
           unique_ptr_t;
 #endif
+
+const static buf_deleter free_deleter(free);
+const static buf_deleter null_deleter([](uint8_t*) {});
 
 // Wrapper for uoffset_t to allow safe template specialization.
 template<typename T> struct Offset {
@@ -519,7 +524,7 @@ class vector_downward {
   // Relinquish the pointer to the caller.
   unique_ptr_t release() {
     // Actually deallocate from the start of the allocated memory.
-    std::function<void(uint8_t *)> deleter(
+    buf_deleter deleter(
       std::bind(&simple_allocator::deallocate, allocator_, buf_));
 
     // Point to the desired offset.
@@ -1491,17 +1496,19 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
 // A BufferRef does not own its buffer.
 struct BufferRefBase {};  // for std::is_base_of
 template<typename T> struct BufferRef : BufferRefBase {
-  BufferRef() : buf(nullptr), len(0), must_free(false) {}
+  BufferRef() : buf(nullptr), len(0), deleter(null_deleter) {}
   BufferRef(uint8_t *_buf, uoffset_t _len)
-    : buf(_buf), len(_len), must_free(false) {}
+    : buf(_buf), len(_len), deleter(null_deleter) {}
 
   void assign(FlatBufferBuilder&& builder) {
+      deleter(buf);
       len = builder.GetSize();
-      must_free = true;
-      buf = builder.ReleaseBufferPointer().release();
+      unique_ptr_t vec_buf = builder.ReleaseBufferPointer();
+      deleter = vec_buf.get_deleter();
+      buf = vec_buf.release();
   }
 
-  ~BufferRef() { if (must_free) free(buf); }
+  ~BufferRef() { deleter(buf); }
 
   const T *GetRoot() const { return flatbuffers::GetRoot<T>(buf); }
 
@@ -1512,7 +1519,7 @@ template<typename T> struct BufferRef : BufferRefBase {
 
   uint8_t *buf;
   uoffset_t len;
-  bool must_free;
+  buf_deleter deleter;
 };
 
 // "structs" are flat structures that do not have an offset table, thus

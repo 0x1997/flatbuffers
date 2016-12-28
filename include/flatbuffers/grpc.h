@@ -22,6 +22,8 @@
 #include "grpc++/support/byte_buffer.h"
 #include "grpc/byte_buffer_reader.h"
 
+#include "flatbuffers/flatbuffers.h"
+
 namespace grpc {
 
 template <class T>
@@ -50,7 +52,7 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
     auto len = grpc_byte_buffer_length(buffer);
     msg->buf = reinterpret_cast<uint8_t *>(malloc(len));
     msg->len = static_cast<flatbuffers::uoffset_t>(len);
-    msg->must_free = true;
+    msg->deleter = flatbuffers::free_deleter;
     uint8_t *current = msg->buf;
     grpc_byte_buffer_reader reader;
     grpc_byte_buffer_reader_init(&reader, buffer);
