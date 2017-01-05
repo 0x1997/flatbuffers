@@ -41,8 +41,9 @@ grpc::string MessageIdentifierName(const grpc::string &name) {
   std::vector<grpc::string> tokens = grpc_generator::tokenize(name, ".");
   std::ostringstream oss;
   for (unsigned int i = 0; i < tokens.size(); i++) {
-    oss << (i == 0 ? "" : "\\")
-        << grpc_generator::CapitalizeFirstLetter(tokens[i]);
+    if (i)
+        oss << '\\';
+    oss << tokens[i];
   }
   return oss.str();
 }
@@ -55,8 +56,8 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
   std::map<grpc::string, grpc::string> vars;
   vars["service_name"] = service_name;
   vars["name"] = method->name();
-  vars["input_type_id"] = MessageIdentifierName(input_type);
-  vars["output_type_id"] = MessageIdentifierName(output_type);
+  vars["input_type_id"] = input_type;
+  vars["output_type_id"] = output_type;
   vars["package"] = MessageIdentifierName(file->package());
   out->Print("/**\n");
   if (method->BidiStreaming()) {
@@ -71,7 +72,7 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
                "'/$service_name$/$name$',\n");
     out->Indent();
     out->Print(vars,
-               "'$package$$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
+               "'\\$package$\\$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
     out->Print(vars,
                "$$metadata, $$options);\n");
   } else if (method->ClientOnlyStreaming()) {
@@ -86,7 +87,7 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
                "'/$service_name$/$name$',\n");
 
     out->Print(vars,
-               "'$package$$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
+               "'\\$package$\\$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
     out->Print(vars,
                "$$metadata, $$options);\n");
   } else if (method->ServerOnlyStreaming()) {
@@ -94,7 +95,7 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
                " * @param $input_type_id$ $$argument input argument\n"
                " * @param array $$metadata metadata\n"
                " * @param array $$options call options\n */\n"
-               "public function $name$($input_type_id$ $$argument,\n"
+               "public function $name$(\\Google\\FlatBuffers\\FlatBufferBuilder $$argument,\n"
                "  $$metadata = [], $$options = []) {\n");
     out->Indent();
     out->Print(vars,
@@ -103,7 +104,7 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
                "$$argument,\n");
 
     out->Print(vars,
-               "'$package$$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
+               "'\\$package$\\$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
     out->Print(vars,
                "$$metadata, $$options);\n");
   } else {
@@ -111,7 +112,7 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
                " * @param $input_type_id$ $$argument input argument\n"
                " * @param array $$metadata metadata\n"
                " * @param array $$options call options\n */\n"
-               "public function $name$($input_type_id$ $$argument,"
+               "public function $name$(\\Google\\FlatBuffers\\FlatBufferBuilder $$argument,"
                " $$metadata = [], $$options = []) {\n");
     out->Indent();
     out->Print(vars,
@@ -119,7 +120,7 @@ void PrintMethod(grpc_generator::File *file, const grpc::string &service_name,
                "$$argument,\n");
     out->Print("'data',\n");
     out->Print(vars,
-               "'$package$$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
+               "'\\$package$\\$output_type_id$::getRootAs$output_type_id$FromBytes',\n");
     out->Print(vars,
                "$$metadata, $$options);\n");
   }
@@ -146,8 +147,13 @@ void PrintService(grpc_generator::File *file,
   out->Print("parent::__construct($hostname, $opts, $channel);\n");
   out->Outdent();
   out->Print("}\n\n");
+  
+  std::string package = file->package();
+  if (!package.empty())
+      package.append(".");
+  
   for (int i = 0; i < service->method_count(); i++) {
-    PrintMethod(file, service->name(), service->method(i).get(), out);
+    PrintMethod(file, package + service->name(), service->method(i).get(), out);
   }
   out->Outdent();
   out->Print("}\n\n");
@@ -156,13 +162,12 @@ void PrintService(grpc_generator::File *file,
 void PrintServices(grpc_generator::File *file, grpc_generator::Printer *out) {
   std::map<grpc::string, grpc::string> vars;
   vars["package"] = MessageIdentifierName(file->package());
-  out->Print(vars, "namespace $package$ {\n\n");
+  out->Print(vars, "namespace $package$;\n\n");
   out->Indent();
   for (int i = 0; i < file->service_count(); i++) {
     PrintService(file, file->service(i).get(), out);
   }
   out->Outdent();
-  out->Print("}\n");
 }
 }
 

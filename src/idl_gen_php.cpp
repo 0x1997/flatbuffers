@@ -162,7 +162,7 @@ namespace php {
       code += Indent + " */\n";
       code += Indent + "public static function getRootAs";
       code += struct_def.name;
-      code += "FromBytes(string $str)\n";
+      code += "FromBytes($str)\n";
       code += Indent + "{\n";
       
       code += Indent + Indent + "$obj = new " + struct_def.name + "();\n";
