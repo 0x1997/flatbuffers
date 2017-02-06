@@ -40,6 +40,7 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
                    reinterpret_cast<const char *>(msg.buf), msg.len);
     *buffer = grpc_raw_byte_buffer_create(&slice, 1);
     *own_buffer = true;
+    grpc_slice_unref(slice);
     return grpc::Status();
   }
 
