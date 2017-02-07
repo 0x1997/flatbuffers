@@ -36,7 +36,7 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
                                 grpc_byte_buffer **buffer,
                                 bool *own_buffer) {
     // TODO(wvo): make this work without copying.
-    auto slice = gpr_slice_from_copied_buffer(
+    auto slice = grpc_slice_from_copied_buffer(
                    reinterpret_cast<const char *>(msg.buf), msg.len);
     *buffer = grpc_raw_byte_buffer_create(&slice, 1);
     *own_buffer = true;
@@ -57,11 +57,11 @@ class SerializationTraits<T, typename std::enable_if<std::is_base_of<
     uint8_t *current = msg->buf;
     grpc_byte_buffer_reader reader;
     grpc_byte_buffer_reader_init(&reader, buffer);
-    gpr_slice slice;
+    grpc_slice slice;
     while (grpc_byte_buffer_reader_next(&reader, &slice)) {
-      memcpy(current, GPR_SLICE_START_PTR(slice), GPR_SLICE_LENGTH(slice));
-      current += GPR_SLICE_LENGTH(slice);
-      gpr_slice_unref(slice);
+      memcpy(current, GRPC_SLICE_START_PTR(slice), GRPC_SLICE_LENGTH(slice));
+      current += GRPC_SLICE_LENGTH(slice);
+      grpc_slice_unref(slice);
     }
     GPR_ASSERT(current == msg->buf + msg->len);
     grpc_byte_buffer_reader_destroy(&reader);
